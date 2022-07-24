@@ -4,367 +4,330 @@ const int maxn = 100000 + 10;
 namespace myRedBlackTree
 {
 	const int maxsize = 100000 + 10;
-	
 	struct Node
 	{
-		short int lc, rc;
-        short int fa;
+		Node()
+		{
+			fa = ch[0] = ch[1] = NULL;
+			col = 1;
+			siz = cnt = 0;
+		}
+		Node(int v, Node *f);
+		Node *ch[2];
+        Node *fa;
 		int val;
-		short int col;
-		short int siz;
+		int col;
+		int siz;
+		int cnt;
+		
 	};
+	Node *nil = new Node;
+	Node::Node(int v, Node *f)
+	{
+		fa = f;
+		ch[0] = ch[1] = nil;
+		val	= v;
+		col = 0;
+		siz = cnt = 1;
+	}
 	struct RBTree
 	{
-		Node tr[maxsize];
-	
-		int tot, Rt;
+		int tot;
+		Node *Rt;
 		
 		void initial()
 		{
-			tot = Rt = 0;
-            tr[0].col = 1;
+			tot = 0;
+			Rt = nil;
 			return;
 		}
 		
-		int newNode(int val)
+		void Rotate(Node *x, bool right)
+        {
+            Node *y = x->ch[!right];
+            x->ch[!right] = y->ch[right];
+            if (y->ch[right] != nil)
+            	y->ch[right]->fa = x;
+            y->fa = x->fa;
+            if (x->fa == nil)
+            	Rt = y;
+            else
+        		x->fa->ch[x == x->fa->ch[1]] = y;
+        	y->ch[right] = x;
+        	x->fa = y;
+        	y->siz = x->siz;
+        	x->siz = x->ch[0]->siz + x->ch[1]->siz + x->cnt;
+        	return;
+        }
+
+		void Transplant(Node *to, Node *from)
 		{
-			tot++;
-			tr[tot].fa = tr[tot].lc = tr[tot].rc = 0;
-			tr[tot].val	= val;
-			tr[tot].col = 0;
-			tr[tot].siz = 1;
-			return tot;
+			from->fa = to->fa;
+			if (to->fa == nil)
+				Rt = from;
+			else
+				to->fa->ch[to == to->fa->ch[1]] = from;
 		}
 		
-		void leftRotate(int x)
+		Node* getMin(Node *x)
+		{
+			while (x->ch[0] != nil)
+				x = x->ch[0];
+			return x;
+		}
+		
+		Node* getMax(Node *x)
+		{
+			while (x->ch[1] != nil)
+				x = x->ch[1];
+			return x;
+		}
+		
+		Node* askNode(int val)
+		{
+			Node *x = Rt;
+			while (x != nil)
+			{
+				if (x->val == val) 
+					return x;
+				x = x->ch[x->val < val];
+			}
+			return nil;
+		}
+		
+        void doubleRedFix(Node *x)
         {
-            int y = tr[x].rc;
-            if (x != Rt)
+            while (x->fa != Rt && !x->fa->col)
             {
-                if (x == tr[tr[x].fa].lc)
-                    tr[tr[x].fa].lc = y; 
-                else 
-                    tr[tr[x].fa].rc = y;
+            	Node *fa = x->fa, *grand = fa->fa;
+            	bool isLeft = fa == grand->ch[0];
+            	Node *y = grand->ch[isLeft];
+            	if (!y->col)
+            	{
+            		y->col = fa->col = 1;
+            		grand->col = 0;
+            		x = grand;
+            	}
+            	else
+            	{
+            		if (x == fa->ch[isLeft])
+            		{
+            			x = fa;
+            			Rotate(x, !isLeft);
+            		}
+            		x->fa->col = 1;
+            		x->fa->fa->col = 0;
+            		Rotate(grand, isLeft);
+            	}
             }
-            else Rt = y;
-            tr[y].fa = tr[x].fa;
-            tr[x].rc = tr[y].lc;
-            tr[tr[x].rc].fa = x;
-            tr[x].siz = tr[tr[x].lc].siz + tr[tr[x].rc].siz + 1;
-            tr[y].lc = x;
-            tr[x].fa = y;
-            tr[y].siz = tr[tr[y].lc].siz + tr[tr[y].rc].siz + 1;
-            return;
-        }
-
-        void rightRotate(int x)
-        {
-            int y = tr[x].lc;
-            if (x != Rt)
-            {
-                if (x == tr[tr[x].fa].lc)
-                    tr[tr[x].fa].lc = y; 
-                else 
-                    tr[tr[x].fa].rc = y;
-            }
-            else Rt = y;
-            tr[y].fa = tr[x].fa;
-            tr[x].lc = tr[y].rc;
-            tr[tr[x].rc].fa = x;
-            tr[x].siz = tr[tr[x].lc].siz + tr[tr[x].rc].siz + 1;
-            tr[y].rc = x;
-            tr[x].fa = y;
-            tr[y].siz = tr[tr[y].lc].siz + tr[tr[y].rc].siz + 1;
-            return;
-        }
-
-        void doubleRedFix(int x)
-        {
-            if (x == Rt)
-            {
-                tr[x].col = 1;
-                return;
-            }
-            if (tr[tr[x].fa].col != 0) return;
-            int dir1, dir2, uncle;
-            if (tr[x].fa == tr[tr[tr[x].fa].fa].lc)
-                dir1 = 0, uncle = tr[tr[tr[x].fa].fa].rc;
-            else 
-                dir1 = 1, uncle = tr[tr[tr[x].fa].fa].lc;
-            if (tr[uncle].col == 0)
-            {
-                tr[uncle].col = tr[tr[x].fa].col = 1;
-                tr[tr[tr[x].fa].fa].col = 0;
-                doubleRedFix(tr[tr[x].fa].fa);
-            }
-            else
-            {
-                if (x == tr[tr[x].fa].lc)
-                    dir2 = 0;
-                else 
-                    dir2 = 1;
-                if (dir1)
-                {
-                    if (dir2 != dir1)
-                    {
-                        rightRotate(tr[x].fa);
-                        leftRotate(x);
-                        tr[x].col = 1;
-                        tr[tr[x].lc].col = 0;
-                    }
-                    else
-                    {
-                        leftRotate(tr[x].fa);
-                        tr[tr[x].fa].col = 1;
-                        tr[tr[tr[x].fa].lc].col = 0;
-                    }
-                }
-                else
-                {
-                    if (dir2 != dir1)
-                    {
-                        leftRotate(tr[x].fa);
-                        rightRotate(x);
-                        tr[x].col = 1;
-                        tr[tr[x].rc].col = 0;
-                    }
-                    else
-                    {
-                        rightRotate(tr[x].fa);
-                        tr[tr[x].fa].col = 1;
-                        tr[tr[tr[x].fa].rc].col = 0;
-                    }
-                }
-            }
+            Rt->col = 1;
             return;
         }
 		
 		void Insert(int val)
 		{
-			int x = newNode(val);
-            if (Rt == 0)
-            {
-                Rt = x;
-                tr[x].col = 1;
-                return;
-            }
-            int now = Rt;
-            while (now != 0)
-            {
-                tr[now].siz++;
-                if (val <= tr[now].val)
-                {
-                    if (tr[now].lc == 0)
-                    {
-                        tr[now].lc = x;
-                        tr[x].fa = now;
-                        break;
-                    }
-                    else now = tr[now].lc;
-                }
-                else
-                {
-                    if (tr[now].rc == 0)
-                    {
-                        tr[now].rc = x;
-                        tr[x].fa = now;
-                        break;
-                    }
-                    else now = tr[now].rc;
-                }
-            }
-            doubleRedFix(x);
+			Node *x = Rt, *y = nil;
+			while (x != nil)
+			{
+				y = x;
+				y->siz++;
+				if (x->val == val)
+				{
+					x->cnt++;
+					return;
+				}
+				x = x->ch[x->val < val];
+			}
+			Node *z = new Node(val, y);
+			if (y == nil)
+				Rt = z;
+			else
+				y->ch[y->val < val] = z;
+			doubleRedFix(z);
             return;
+		}
+		
+		void doubleBlackFix(Node *x)
+        {
+        	while (x != Rt && x->col)
+        	{
+        		Node *fa = x->fa;
+        		bool isLeft = x == fa->ch[0];
+        		Node *y = fa->ch[isLeft];
+        		if (!y->col)
+        		{
+        			fa->col = 0;
+        			y->col = 1;
+        			Rotate(fa, !isLeft);
+        			y = fa->ch[isLeft];
+        		}
+        		if (!y->ch[0]->col || !y->ch[1]->col)
+        		{
+        			if (y->ch[isLeft]->col)
+        			{
+        				y->col = 0;
+        				y->ch[!isLeft]->col = 1;
+        				Rotate(y, isLeft);
+        				y = fa->ch[isLeft];
+        			}
+        			y->col = fa->col;
+        			fa->col = 1;
+        			y->ch[isLeft]->col = 1;
+        			Rotate(y->fa, !isLeft);
+        			x = Rt;
+        		}
+        		else
+        		{
+        			y->col = 0;
+        			x = x->fa;
+        		}
+        	}
+        	x->col = 1;
+            return;
+        }
+
+		void Delete(int val)
+		{
+            Node *z = Rt, *w = nil;
+            while (z != nil)
+            {
+            	w = z;
+            	w->siz--;
+            	if (z->val == val)
+            		break;
+            	z = z->ch[z->val < val];
+            }
+            if (z != nil)
+            {
+            	if (z->cnt > 1)
+            	{
+            		z->cnt--;
+            		return;
+            	}
+            	Node *y = z, *x;
+            	int oldCol = y->col;
+            	if (z->ch[0] == nil)
+            	{
+            		x = z->ch[1];
+            		Transplant(z, z->ch[1]);
+            	}
+            	else if (z->ch[1] == nil)
+            	{
+            		x = z->ch[0];
+            		Transplant(z, z->ch[0]);
+            	}
+            	else
+            	{
+            		y = getMin(z->ch[1]);
+            		oldCol = y->col;
+            		x = y->ch[1];
+            		if (y->fa == z)
+            			x->fa = y;
+            		else
+            		{
+            			Node *tmp = y;
+            			while (tmp != z)
+            			{
+            				tmp->siz -= y->cnt;
+            				tmp = tmp->fa;
+            			}
+            			Transplant(y, y->ch[1]);
+            			y->ch[1] = z->ch[1];
+            			y->ch[1]->fa = y;
+            		}
+            		Transplant(z, y);
+            		y->ch[0] = z->ch[0];
+            		y->ch[0]->fa = y;
+            		y->col = z->col;
+            		y->siz = y->ch[0]->siz + y->ch[1]->siz + y->cnt;
+				}
+				if (oldCol)
+					doubleBlackFix(x);
+            }
+            else
+            {
+            	while (w != nil)
+            	{
+            		w->siz++;
+            		w = w->fa;
+            	}
+            }
+			return;
 		}
 		
         int askRank(int val)
 		{
-			int now = Rt, res = 1;
-            while (now != 0)
-            {
-                if (val <= tr[now].val)
-                    now = tr[now].lc;
-                else
-                {
-                    res += tr[tr[now].lc].siz + 1;
-                    now = tr[now].rc;
-                }
-            }
+			Node *x = Rt;
+			int res = 1;
+			while (x != nil)
+			{
+				if (x->val < val)
+				{
+					res += x->ch[0]->siz + x->cnt;
+					x = x->ch[1];
+				}
+				else x = x->ch[0];
+			}
             return res;
 		}
 			
-		int askValue(int rank)
-		{
-			int now = Rt;
-            while (now != 0)
-            {
-                if (rank == tr[tr[now].lc].siz + 1)
-                    return tr[now].val;
-                if (rank <= tr[tr[now].lc].siz)
-                    now = tr[now].lc;
-                else
-                {
-                    rank -= tr[tr[now].lc].siz + 1;
-                    now = tr[now].rc;
-                }
-            }
-            return 0;
-		}
-		
 		int askPrev(int val)
 		{
-			int now = Rt, res = 0;
-            while (now != 0)
-            {
-                if (val <= tr[now].val)
-                    now = tr[now].lc;
-                else
-                {
-                    res = tr[now].val;
-                    now = tr[now].rc;
-                }
-            }
+			Insert(val);
+			int res;
+			Node *x = askNode(val);
+			if (x->ch[0] != nil)
+				res = getMax(x->ch[0])->val;
+			else
+			{
+				while (x->fa->ch[0] == x)
+					x = x->fa;
+				if (x->fa == nil)
+					res = inf;
+				else
+					res = x->fa->val;
+			}
+			Delete(val);
             return res;
 		}
 		
 		int askNext(int val)
 		{
-			int now = Rt, res = 0;
-            while (now != 0)
-            {
-                if (val < tr[now].val)
-                {
-                    res = tr[now].val;
-                    now = tr[now].lc;
-                }
-                else
-                    now = tr[now].rc;
-            }
+			Insert(val);
+			int res;
+			Node *x = askNode(val);
+			if (x->ch[1] != nil)
+				res = getMin(x->ch[1])->val;
+			else
+			{
+				while (x->fa->ch[1] == x)
+					x = x->fa;
+				if (x->fa == nil)
+					res = inf;
+				else
+					res = x->fa->val;
+			}
+			Delete(val);
             return res;
 		}
-
-        void doubleBlackFix(int x)
-        {
-            if (tr[x].col <= 1 || x == Rt) return;
-            int sibling;
-            if (x == tr[tr[x].fa].lc)
-            {
-                sibling = tr[tr[x].fa].rc; 
-                if (tr[sibling].col == 0)
-                {
-                    leftRotate(tr[x].fa);
-                    tr[tr[x].fa].col = 0;
-                    tr[tr[tr[x].fa].fa].col = 1;
-                    doubleBlackFix(x);
-                }
-                else
-                {
-                    if (tr[tr[sibling].lc].col == 1 && tr[tr[sibling].rc].col == 1)
-                    {
-                        tr[x].col--;
-                        tr[tr[x].fa].col++;
-                        tr[sibling].col = 0;
-                        doubleBlackFix(tr[x].fa);
-                    }
-                    else
-                    {
-                        if (tr[tr[sibling].rc].col != 0)
-                        {
-                            rightRotate(sibling);
-                            tr[sibling].col = 0;
-                            tr[tr[sibling].fa].col = 1;
-                        }
-                        sibling = tr[tr[x].fa].rc;
-                        leftRotate(tr[x].fa);
-                        tr[sibling].col = tr[tr[x].fa].col;
-                        tr[tr[sibling].lc].col = tr[tr[sibling].rc].col = 1;
-                        tr[x].col--;
-                    }
-                }
-            }
-            else 
-            {
-                sibling = tr[tr[x].fa].lc; 
-                if (tr[sibling].col == 0)
-                {
-                    rightRotate(tr[x].fa);
-                    tr[tr[x].fa].col = 0;
-                    tr[tr[tr[x].fa].fa].col = 1;
-                    doubleBlackFix(x);
-                }
-                else
-                {
-                    if (tr[tr[sibling].lc].col == 1 && tr[tr[sibling].rc].col == 1)
-                    {
-                        tr[x].col--;
-                        tr[tr[x].fa].col++;
-                        tr[sibling].col = 0;
-                        doubleBlackFix(tr[x].fa);
-                    }
-                    else
-                    {
-                        if (tr[tr[sibling].lc].col != 0)
-                        {
-                            leftRotate(sibling);
-                            tr[sibling].col = 0;
-                            tr[tr[sibling].fa].col = 1;
-                        }
-                        sibling = tr[tr[x].fa].lc;
-                        rightRotate(tr[x].fa);
-                        tr[sibling].col = tr[tr[x].fa].col;
-                        tr[tr[sibling].lc].col = tr[tr[sibling].rc].col = 1;
-                        tr[x].col--;
-                    }
-                }
-            }
-        }
-
-		void Delete(int val)
+		
+		int askValue(int rank)
 		{
-            int now = Rt, originalCol;
-            while (now != 0)
-            {
-                tr[now].siz--;
-                if (val == tr[now].val) break;
-                if (val < tr[now].val)
-                    now = tr[now].lc;
-                else
-                    now = tr[now].rc;
-            }
-            int x, y;
-            if (tr[now].lc == 0)
-            {
-                y = now;
-                x = tr[now].rc;
-            }
-            else if (tr[now].rc == 0)
-            {
-                y = now;
-                x = tr[now].lc;
-            }
-            else
-            {
-                y = tr[now].rc;
-                while (tr[y].lc != 0) 
-                {
-                    tr[y].siz--;
-                    y = tr[y].lc;
-                }
-                x = tr[y].rc;
-            }
-            if (y == tr[tr[y].fa].lc)
-                tr[tr[y].fa].lc = x; 
-            else 
-                tr[tr[y].fa].rc = x;
-            tr[x].fa = tr[y].fa;
-            tr[x].col += tr[y].col;
-            if (Rt == now && now == y) Rt = x;
-            if (now != y)
-                tr[now].val = tr[y].val;
-            doubleBlackFix(x);
-            tr[Rt].col = 1;
-			return;
+			Node *x = Rt;
+			while (x != nil)
+			{
+				if (x->ch[0]->siz + 1 <= rank && rank <= x->ch[0]->siz + x->cnt)
+					return x->val;
+				if (x->ch[0]->siz + x->cnt < rank)
+				{
+					rank -= x->ch[0]->siz + x->cnt;
+					x = x->ch[1];
+				}
+				else x = x->ch[0];
+			}
+			return inf;
 		}
+
 	};
 }
 
