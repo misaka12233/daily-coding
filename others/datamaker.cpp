@@ -2,14 +2,16 @@
 using namespace std;
 int main()
 {
-	freopen("debug.in", "w", stdout);
-    puts("3000 3000");
-    for (int i = 1; i <= 3000; i++)
-    {
-    for (int j = 1; j <= 3000; j++)
-        printf(".");
-        puts("");
-    }
+	srand(time(0));
+	int n = 1000;
+	printf("%d\n", n);
+	for (int i = 1; i <= n; i++)
+	{
+		int l = rand() % 100 + 1, r = rand() % 100 + 1;
+		while (l == r) r = rand() % 100 + 1;
+		if (l > r) swap(l, r);
+		printf("%d %d\n", l, r);
+	}
 	return 0;
 }
 

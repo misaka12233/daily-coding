@@ -7,22 +7,18 @@ struct node{
 	int st, ed;
 	long long flow;
 	int nxt;
-	int custom_num, site_num, type;
 }edge[maxm * 2];
 int n, m;
 int net_s, net_t;
 int head[maxn], cur_head[maxn], tot;
 int dep[maxn];
 queue<int> q;
-void add_edge(int st, int ed, int flow, int custom_num, int site_num, int type)
+void add_edge(int st, int ed, int flow)
 {
 	tot++;
 	edge[tot].st = st;
 	edge[tot].ed = ed;
 	edge[tot].flow = flow;
-	edge[tot].custom_num = custom_num;
-	edge[tot].site_num = site_num;
-	edge[tot].type = type;
 	edge[tot].nxt = head[st];
 	head[st] = tot;
 }
@@ -69,10 +65,11 @@ long long dfs(int x, long long f)
 			if(f==0) break;
 		}
 	}
+	if (res == 0) dep[x] = 0;
 	return res;
 }
 
-void solve_dinic()
+void getedge()
 {
 	scanf("%d%d%d%d", &n, &m, &net_s, &net_t);
 	tot = -1;
@@ -82,9 +79,14 @@ void solve_dinic()
 	{
 		int x, y, z;
 		scanf("%d%d%d", &x, &y, &z);
-		add_edge(x, y, z, 0, 0, 0);
-		add_edge(y, x, 0, 0, 0, 0);
+		add_edge(x, y, z);
+		add_edge(y, x, 0);
 	}
+} 
+
+void solve_dinic()
+{
+	getedge();
 	long long ans = 0;
 	while (bfs()) ans += dfs(net_s, INF);
 	printf("%lld\n", ans);
@@ -94,4 +96,3 @@ int main()
 	solve_dinic();
 	return 0;
 }
-
