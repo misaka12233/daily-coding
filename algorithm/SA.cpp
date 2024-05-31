@@ -6,6 +6,14 @@ int n, m;
 namespace SA
 {
 	int sa[maxn], rk[maxn], bkt[maxn], t[maxn], ht[maxn];
+	// sa[i]: 排名为i的后缀是以sa[i]为起点的后缀 
+	// rk[i]: 以i为起点的后缀排名为rk[i]
+	// ht[i]: sa[i]与sa[i-1]对应的后缀的最长公共前缀(LCP) 
+	// 后缀的前缀即为子串 
+	// 以x为起点的后缀与以y为起点的后缀的LCP：min(ht[rk[x+1]]...ht[rk[y]]) (设rk[x] < rk[y])
+	// 可重叠最长重复子串：ht数组的最大值 
+	// 不可重叠最长重复子串：二分答案
+	// 本质不同子串数量： sum(n-sa[i]+1-height[i])
 	void Radsort()
 	{
 		for (int i = 1; i <= m; i++)

@@ -2,13 +2,16 @@
 using namespace std;
 int main()
 {
-	while(1) //Ò»Ö±Ñ­»·£¬Ö±µ½ÕÒµ½²»Ò»ÑùµÄÊý¾Ý
+	while(1) //Ò»Ö±Ñ­ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
+		int x;
+		scanf("%d", &x);
+		if (x > 100) break;
 		system("datamaker.exe > in.txt");
-		system("TC_unknown.exe < in.txt > baoli.txt");
-		system("TC_std.exe < in.txt > std.txt");
-		if(system("fc std.txt baoli.txt")) //µ± fc ·µ»Ø1Ê±£¬ËµÃ÷ÕâÊ±Êý¾Ý²»Ò»Ñù
-		break; //²»Ò»Ñù¾ÍÌø³öÑ­»·
+		system("gcy_L12Q3.exe < in.txt > out.txt");
+		/*system("lxy.exe < in.txt > lxy.txt");
+		if(system("fc my.txt lxy.txt")) //ï¿½ï¿½ fc ï¿½ï¿½ï¿½ï¿½1Ê±ï¿½ï¿½Ëµï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ý²ï¿½Ò»ï¿½ï¿½
+		break; //ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½*/
 	}
 	return 0;
 }
